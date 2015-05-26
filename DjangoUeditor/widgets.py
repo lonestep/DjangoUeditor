@@ -1,12 +1,12 @@
-# coding:utf-8
+#coding:utf-8
 from django import forms
 from django.conf import settings
 from django.contrib.admin.widgets import AdminTextareaWidget
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.http import urlencode
-import settings as USettings
-from  commands import *
+from DjangoUeditor import settings as USettings
+from DjangoUeditor.commands import *
 
 # 修正输入的文件路径,输入路径的标准格式：abc,不需要前后置的路径符号
 #如果输入的路径参数是一个函数则执行，否则可以拉接受时间格式化，用来生成如file20121208.bmp的重命名格式
@@ -22,16 +22,13 @@ def calc_path(OutputPath, instance=None):
             OutputPath = datetime.datetime.now().strftime(OutputPath)
         except:
             pass
-
     return OutputPath
 
 #width=600, height=300, toolbars="full", imagePath="", filePath="", upload_settings={},
                 # settings={},command=None,event_handler=None
 class UEditorWidget(forms.Textarea):
     def __init__(self,attrs=None):
-
         params=attrs.copy()
-
         width=params.pop("width")
         height=params.pop("height")
         toolbars=params.pop("toolbars","full")
@@ -61,12 +58,14 @@ class UEditorWidget(forms.Textarea):
             'initialFrameHeight':height
         }
         #以下处理工具栏设置，将normal,mini等模式名称转化为工具栏配置值
-        if toolbars == "full":
-            del self.ueditor_settings['toolbars']
-        elif isinstance(toolbars, basestring) and toolbars in USettings.TOOLBARS_SETTINGS:
-            self.ueditor_settings["toolbars"]=USettings.TOOLBARS_SETTINGS[toolbars]
-        else:
-            raise ValueError('toolbars should be a string defined in DjangoUeditor.settings.TOOLBARS_SETTINGS, options are full(default), besttome, mini and normal!')
+        try:
+            if type(toolbars)==str:
+                if toolbars =="full":
+                    del self.ueditor_settings['toolbars']
+                else:
+                    self.ueditor_settings["toolbars"]=USettings.TOOLBARS_SETTINGS[toolbars]
+        except:
+            pass
         self.ueditor_settings.update(settings)
         super(UEditorWidget, self).__init__(attrs)
 
